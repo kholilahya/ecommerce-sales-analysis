@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Analisis Penjualan E-commerce Olist</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1c2430;--muted:#5d6877;--line:#dde2e8;--c1:#1f4e79;--c2:#d9691f;--soft:#eaf1f8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--fg:#e8ecf1;--muted:#9aa5b3;--line:#2c3541;--c1:#6fa8dc;--c2:#f0924f;--soft:#222c38;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--fg:#e8ecf1;--muted:#9aa5b3;--line:#2c3541;--c1:#6fa8dc;--c2:#f0924f;--soft:#222c38;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.9rem;margin:0 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi b{display:block;font-size:1.45rem;color:var(--c1)}
+.kpi span{color:var(--muted);font-size:.8rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wide{grid-column:1/-1}
+@media (max-width:720px){.grid{grid-template-columns:1fr}}
+h2{font-size:1rem;margin:0 0 2px}
+.card p.d{color:var(--muted);font-size:.82rem;margin:0 0 8px}
+.chart{width:100%;overflow:hidden}
+svg{display:block;max-width:100%}
+.tx{fill:var(--muted);font-size:11px}.vl{fill:var(--fg);font-size:11px}
+.ax{stroke:var(--line);stroke-width:1}
+.l1{stroke:var(--c1);fill:none;stroke-width:2.5}.l2{stroke:var(--c2);fill:none;stroke-width:2.5}
+.d1{fill:var(--c1)}.d2{fill:var(--c2)}
+.leg{display:flex;gap:14px;font-size:.8rem;color:var(--muted);margin-top:4px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.ins{background:var(--soft);border-radius:12px;padding:14px 18px;margin-top:14px}
+.ins ol,.notes ul{margin:6px 0 0;padding-left:20px}
+.ins li,.notes li{margin-bottom:6px}
+.notes{margin-top:14px;font-size:.85rem;color:var(--muted)}
+footer{margin-top:18px;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>Analisis Penjualan E-commerce Olist, 2017–2018</h1>
+<p class="sub">Proyek portofolio analisis data: SQL (SQLite), Excel, dan visualisasi. Hanya pesanan berstatus <em>delivered</em>; pendapatan = total harga barang tanpa ongkir (proksi GMV).</p>
+
+<section class="kpis" aria-label="Ringkasan">
+<div class="kpi"><b>96.478</b><span>Total pesanan terkirim</span></div>
+<div class="kpi"><b>±13,2 juta</b><span>Total pendapatan (harga barang)</span></div>
+<div class="kpi"><b>±137</b><span>Nilai rata-rata per pesanan</span></div>
+<div class="kpi"><b>±2,4×</b><span>Pesanan &amp; pendapatan Jan–Agu 2018 vs Jan–Agu 2017</span></div>
+</section>
+
+<section class="grid">
+<div class="card wide"><h2>Tren bulanan: pendapatan dan pesanan</h2><p class="d">Januari 2017–Agustus 2018. Data 2016 dikecualikan karena terlalu sedikit.</p><div class="chart" id="trend"></div>
+<div class="leg"><span><i style="background:var(--c1)"></i>Pendapatan (sumbu kiri)</span><span><i style="background:var(--c2)"></i>Pesanan (sumbu kanan)</span></div></div>
+<div class="card"><h2>Top 10 kategori menurut pendapatan</h2><p class="d">Kategori pendapatan terbesar belum tentu yang pesanannya terbanyak.</p><div class="chart" id="cat"></div></div>
+<div class="card"><h2>Konsentrasi seller</h2><p class="d">Persen kumulatif pendapatan dari 20 seller teratas.</p><div class="chart" id="sel"></div></div>
+<div class="card wide"><h2>Lama pengiriman dan skor ulasan</h2><p class="d">Rata-rata hari dari pembelian sampai barang tiba, per skor ulasan.</p><div class="chart" id="rev"></div></div>
+</section>
+
+<section class="ins"><h2>Tiga temuan utama</h2>
+<ol>
+<li><b>Pertumbuhan cepat.</b> Pesanan dan pendapatan Jan–Agu 2018 sekitar 2,4 kali lipat dibanding Jan–Agu 2017. Pesanan melonjak di November 2017 (dugaan: promo akhir tahun, data tidak memuat info promo), lalu mendatar di kisaran 6.000–7.000 per bulan pada 2018.</li>
+<li><b>Penjualan cukup tersebar.</b> Seller teratas hanya sekitar 1,7% dari pendapatan; 10 seller teratas sekitar 13% dan 20 seller teratas sekitar 21%.</li>
+<li><b>Pengiriman lambat berkaitan dengan ulasan rendah.</b> Ulasan skor 1 rata-rata menunggu sekitar 21 hari, skor 5 sekitar 11 hari. Ini korelasi, bukan bukti sebab-akibat.</li>
+</ol></section>
+
+<section class="notes"><b>Catatan metode dan keterbatasan</b>
+<ul>
+<li>Sumber: Olist Brazilian E-Commerce Public Dataset (Kaggle); periksa lisensi dan mata uang pada halaman dataset.</li>
+<li>Angka pesanan per kategori dihitung per kategori; satu pesanan bisa memuat beberapa kategori, jadi tidak boleh dijumlahkan.</li>
+<li>Data berhenti di Agustus 2018 dan hanya memuat pesanan terkirim, sehingga bulan-bulan terakhir bisa terhitung lebih rendah.</li>
+<li>Satu pesanan dapat memiliki lebih dari satu ulasan; jumlah ulasan bukan jumlah pesanan.</li>
+</ul></section>
+<footer>Dianalisis oleh Ahmad Kholil Ahya Ainul Yaqin · SQL, Excel, dan visualisasi web.</footer>
+</main>
+<script>
+const MN=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const M=[["2017-01",750,111798.36],["2017-02",1653,234223.4],["2017-03",2546,359198.85],["2017-04",2303,340669.68],["2017-05",3546,489338.25],["2017-06",3135,421923.37],["2017-07",3872,481604.52],["2017-08",4193,554699.7],["2017-09",4150,607399.67],["2017-10",4478,648247.65],["2017-11",7289,987765.37],["2017-12",5513,726033.19],["2018-01",7069,924645],["2018-02",6555,826437.13],["2018-03",7003,953356.25],["2018-04",6798,973534.09],["2018-05",6749,977544.69],["2018-06",6099,856077.86],["2018-07",6159,867953.46],["2018-08",6351,838576.64]];
+const C=[["health beauty",1233131.72],["watches gifts",1166176.98],["bed bath table",1023434.76],["sports leisure",954852.55],["computers accessories",888724.61],["furniture decor",711927.69],["housewares",615628.69],["cool stuff",610204.1],["auto",578966.65],["toys",471286.48]];
+const S=[1.72,3.37,4.85,6.3,7.71,8.96,10.17,11.23,12.28,13.27,14.2,15.11,15.96,16.82,17.66,18.46,19.23,19.98,20.68,21.28];
+const R=[[1,21.3],[2,16.7],[3,14.3],[4,12.3],[5,10.7]];
+const $=id=>document.getElementById(id);
+const nf=(v,d=0)=>v.toLocaleString("id-ID",{maximumFractionDigits:d});
+const jt=v=>v===0?"0":nf(v/1e6,2)+" jt";
+const open=(W,H,l)=>`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${l}">`;
+
+function trend(){
+ const el=$("trend"),W=Math.max(el.clientWidth,300),H=300,sm=W<500,m={l:sm?46:58,r:sm?42:54,t:14,b:32};
+ const iw=W-m.l-m.r,ih=H-m.t-m.b,n=M.length;
+ const x=i=>m.l+iw*i/(n-1),yR=v=>m.t+ih*(1-v/1200000),yO=v=>m.t+ih*(1-v/8000);
+ let s=open(W,H,"Grafik garis pendapatan dan pesanan per bulan");
+ for(let t=0;t<=4;t++){const y=m.t+ih*t/4;
+  s+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}"/>`;
+  s+=`<text class="tx" x="${m.l-6}" y="${y+4}" text-anchor="end">${jt(1200000*(1-t/4))}</text>`;
+  s+=`<text class="tx" x="${W-m.r+6}" y="${y+4}">${nf(8000*(1-t/4))}</text>`;}
+ M.forEach((d,i)=>{if(i%3===0){const p=d[0].split("-");
+  s+=`<text class="tx" x="${x(i)}" y="${H-10}" text-anchor="middle">${MN[+p[1]-1]} ${p[0].slice(2)}</text>`;}});
+ s+=`<polyline class="l1" points="${M.map((d,i)=>x(i)+","+yR(d[2])).join(" ")}"/>`;
+ s+=`<polyline class="l2" points="${M.map((d,i)=>x(i)+","+yO(d[1])).join(" ")}"/>`;
+ M.forEach((d,i)=>{const p=d[0].split("-"),lb=MN[+p[1]-1]+" "+p[0];
+  s+=`<circle class="d1" cx="${x(i)}" cy="${yR(d[2])}" r="3"><title>${lb}: pendapatan ${nf(d[2])}</title></circle>`;
+  s+=`<circle class="d2" cx="${x(i)}" cy="${yO(d[1])}" r="3"><title>${lb}: ${nf(d[1])} pesanan</title></circle>`;});
+ el.innerHTML=s+"</svg>";
+}
+function cat(){
+ const el=$("cat"),W=Math.max(el.clientWidth,260),lw=W<420?112:140,rh=28,H=C.length*rh+8,max=1233131.72,iw=W-lw-64;
+ let s=open(W,H,"Grafik batang top 10 kategori menurut pendapatan");
+ C.forEach((d,i)=>{const y=i*rh+4,w=iw*d[1]/max;
+  s+=`<text class="tx" x="${lw-6}" y="${y+16}" text-anchor="end">${d[0]}</text>`;
+  s+=`<rect class="d1" x="${lw}" y="${y+3}" width="${w}" height="${rh-10}" rx="3"/>`;
+  s+=`<text class="vl" x="${lw+w+5}" y="${y+16}">${jt(d[1])}</text>`;});
+ el.innerHTML=s+"</svg>";
+}
+function sel(){
+ const el=$("sel"),W=Math.max(el.clientWidth,260),H=250,m={l:40,r:14,t:16,b:36},iw=W-m.l-m.r,ih=H-m.t-m.b;
+ const x=i=>m.l+iw*i/19,y=v=>m.t+ih*(1-v/25);
+ let s=open(W,H,"Grafik garis persen kumulatif pendapatan seller teratas");
+ for(let v=0;v<=25;v+=5){s+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tx" x="${m.l-6}" y="${y(v)+4}" text-anchor="end">${v}%</text>`;}
+ [0,4,9,14,19].forEach(i=>{s+=`<text class="tx" x="${x(i)}" y="${H-18}" text-anchor="middle">${i+1}</text>`;});
+ s+=`<text class="tx" x="${m.l+iw/2}" y="${H-3}" text-anchor="middle">Peringkat seller</text>`;
+ s+=`<polyline class="l1" points="${S.map((v,i)=>x(i)+","+y(v)).join(" ")}"/>`;
+ S.forEach((v,i)=>{s+=`<circle class="d1" cx="${x(i)}" cy="${y(v)}" r="3"><title>Top ${i+1} seller: ${nf(v,2)}%</title></circle>`;});
+ [[9,"Top 10: 13,3%"],[19,"Top 20: 21,3%"]].forEach(([i,t])=>{s+=`<text class="vl" x="${x(i)}" y="${y(S[i])-10}" text-anchor="end">${t}</text>`;});
+ el.innerHTML=s+"</svg>";
+}
+function rev(){
+ const el=$("rev"),W=Math.max(el.clientWidth,260),H=240,m={l:40,r:14,t:20,b:44},iw=W-m.l-m.r,ih=H-m.t-m.b,bw=iw/5;
+ const y=v=>m.t+ih*(1-v/25);
+ let s=open(W,H,"Grafik kolom rata-rata hari kirim per skor ulasan");
+ for(let v=0;v<=25;v+=5){s+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text class="tx" x="${m.l-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;}
+ R.forEach((d,i)=>{const x=m.l+bw*i+bw*.2,w=bw*.6;
+  s+=`<rect class="d2" x="${x}" y="${y(d[1])}" width="${w}" height="${y(0)-y(d[1])}" rx="3"/>`;
+  s+=`<text class="vl" x="${x+w/2}" y="${y(d[1])-5}" text-anchor="middle">${nf(d[1],1)}</text>`;
+  s+=`<text class="tx" x="${x+w/2}" y="${H-24}" text-anchor="middle">Skor ${d[0]}</text>`;});
+ s+=`<text class="tx" x="${m.l+iw/2}" y="${H-6}" text-anchor="middle">Skor ulasan (hari kirim rata-rata)</text>`;
+ el.innerHTML=s+"</svg>";
+}
+function draw(){trend();cat();sel();rev();}
+draw();let t;addEventListener("resize",()=>{clearTimeout(t);t=setTimeout(draw,120)});
+</script>
+</body>
+</html>
